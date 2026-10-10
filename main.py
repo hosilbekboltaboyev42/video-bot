@@ -26,13 +26,11 @@ async def start_handler(message: types.Message):
 async def download_media(message: types.Message):
     query = message.text
     
-    # Agar xabar /start bo'lmasa, qidirishni boshlaymiz (CommandStart o'zi ushlaydi, lekin qo'shimcha xavfsizlik uchun)
     if query.startswith("/start"):
         return
 
     await message.answer("🔍 Qidirilmoqda va yuklanmoqda, iltimos kuting...")
     
-    # Agar matn havola bo'lmasa, YouTube'dan qidiradi
     if not query.startswith("http://") and not query.startswith("https://"):
         search_query = f"ytsearch1:{query} audio"
     else:
@@ -82,3 +80,10 @@ async def download_media(message: types.Message):
 @dp.message(F.voice)
 async def voice_handler(message: types.Message):
     await message.answer("🎙 Ovozli xabaringiz qabul qilindi. Hozircha qo'shiq nomini matn ko'rinishida yozib yuborishingizni so'rayman!")
+
+# 4. Botni ishga tushirish (Polling) - ENG MUHIM QISM
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
