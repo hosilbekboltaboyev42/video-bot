@@ -1,15 +1,32 @@
 import os
 import asyncio
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import CommandStart
 import yt_dlp
 
+# --- Render port talabini qondirish uchun kichik veb-server ---
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running successfully!")
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
+
+# Veb-serverni alohida oqimda (thread) fonda ishga tushiramiz
+threading.Thread(target=run_web_server, daemon=True).start()
+
+# --- Telegram Bot qismi ---
 TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# 1. /start buyrug'i uchun maxsus javob
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
     await message.answer(
@@ -21,7 +38,6 @@ async def start_handler(message: types.Message):
         parse_mode="Markdown"
     )
 
-# 2. Havola yoki Qo'shiq nomi (Matn) bo'yicha qidirib yuklash
 @dp.message(F.text)
 async def download_media(message: types.Message):
     query = message.text
@@ -76,12 +92,10 @@ async def download_media(message: types.Message):
     except Exception as e:
         await message.answer("❌ Qo'shiqni topib bo'lmadi yoki yuklashda xatolik yuz berdi.")
 
-# 3. Ovozli xabarlar (Golosovoy) uchun
 @dp.message(F.voice)
 async def voice_handler(message: types.Message):
     await message.answer("🎙 Ovozli xabaringiz qabul qilindi. Hozircha qo'shiq nomini matn ko'rinishida yozib yuborishingizni so'rayman!")
 
-# 4. Botni ishga tushirish (Polling) - ENG MUHIM QISM
 async def main():
     await dp.start_polling(bot)
 
