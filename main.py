@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, F, types
 import yt_dlp
 
-TOKEN = "8958391218:AAF1gVfoItLMkY9E3YchYw5PHpbjxpoWRm0"
+TOKEN = "8958391218:AAFS-O8T_ZFJwWXF-RwUmsr2HBqhdjVPBWg"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
