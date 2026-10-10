@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import FSInputFile
 import yt_dlp
 
-TOKEN = "8958391218:AAFS-O8T_ZFJwWXF-RwUmsr2HBqhdjVPBWg"
+TOKEN = "8958391218:AAGzPO3z2xOaBm4SKOW8jXjTLB9vqDyb1Tk"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -26,25 +26,26 @@ async def download_media(message: types.Message):
             'format': 'bestaudio/best',
             'outtmpl': 'downloads/%(id)s.%(ext)s',
             'quiet': True,
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
         }
         is_audio = True
     else:
-        # Havola bo'lsa (Instagram, TikTok, YouTube video) - videoni o'zini yuklaymiz
+        # Havola bo'lsa (Instagram, TikTok, YouTube video) - videoni yuklaymiz
         search_query = query
         ydl_opts = {
             'format': 'best',
             'outtmpl': 'downloads/%(id)s.%(ext)s',
             'quiet': True,
             'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
         }
         is_audio = False
@@ -56,7 +57,7 @@ async def download_media(message: types.Message):
                 return ydl.extract_info(search_query, download=True)
 
         info = await loop.run_in_executor(None, extract)
-        if 'entries' in info:
+        if 'entries' in info and len(info['entries']) > 0:
             info = info['entries'][0]
 
         filename = yt_dlp.YoutubeDL(ydl_opts).prepare_filename(info)
@@ -74,7 +75,7 @@ async def download_media(message: types.Message):
             os.remove(media_filename)
 
     except Exception as e:
-        await message.answer("❌ Havolani yuklab bo'lmadi. Havola ochiq ekanligiga ishonch hosil qiling.")
+        await message.answer("❌ Yuklab bo'lmadi. Havola yoki qidiruv so'zini tekshiring.")
         print(f"Xatolik: {e}")
 
 async def main():
