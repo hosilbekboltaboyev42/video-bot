@@ -3,10 +3,10 @@ import asyncio
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.filters import CommandStart
+from aiogram.filters import Command
 import yt_dlp
 
-# --- Render port talabini qondirish uchun kichik veb-server ---
+# --- Render port talabini qondirish uchun veb-server ---
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -18,7 +18,6 @@ def run_web_server():
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# Veb-serverni alohida oqimda (thread) fonda ishga tushiramiz
 threading.Thread(target=run_web_server, daemon=True).start()
 
 # --- Telegram Bot qismi ---
@@ -27,7 +26,8 @@ TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-@dp.message(CommandStart())
+# 1. /start buyrug'i uchun alohida handler
+@dp.message(Command("start"))
 async def start_handler(message: types.Message):
     await message.answer(
         "👋 Salom! Men musiqa va video yuklab beruvchi botman.\n\n"
@@ -38,11 +38,17 @@ async def start_handler(message: types.Message):
         parse_mode="Markdown"
     )
 
+# 2. Ovozli xabarlar uchun
+@dp.message(F.voice)
+async def voice_handler(message: types.Message):
+    await message.answer("🎙 Ovozli xabaringiz qabul qilindi. Hozircha qo'shiq nomini matn ko'rinishida yozib yuborishingizni so'rayman!")
+
+# 3. Oddiy matn yoki havolalar uchun (Faqat /start dan boshqa matnlar)
 @dp.message(F.text)
 async def download_media(message: types.Message):
     query = message.text
     
-    if query.startswith("/start"):
+    if query.startswith("/"):
         return
 
     await message.answer("🔍 Qidirilmoqda va yuklanmoqda, iltimos kuting...")
@@ -91,10 +97,6 @@ async def download_media(message: types.Message):
 
     except Exception as e:
         await message.answer("❌ Qo'shiqni topib bo'lmadi yoki yuklashda xatolik yuz berdi.")
-
-@dp.message(F.voice)
-async def voice_handler(message: types.Message):
-    await message.answer("🎙 Ovozli xabaringiz qabul qilindi. Hozircha qo'shiq nomini matn ko'rinishida yozib yuborishingizni so'rayman!")
 
 async def main():
     await dp.start_polling(bot)
